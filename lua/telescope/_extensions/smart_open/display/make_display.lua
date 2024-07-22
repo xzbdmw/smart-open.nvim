@@ -13,13 +13,13 @@ local function interp(s, tab)
 end
 
 local function open_buffer_indicators(entry, buffer_indicators)
-  local prefix = "  "
+  local prefix = " "
 
   if entry.buf and vim.api.nvim_buf_is_valid(entry.buf) then
     if entry.scores.alt > 0 then
-      prefix = buffer_indicators.previous .. " "
+      prefix = buffer_indicators.previous
     else
-      prefix = buffer_indicators.others .. " "
+      prefix = buffer_indicators.others
     end
   end
 

@@ -37,7 +37,7 @@ function M.start(opts)
     show_scores = vim.F.if_nil(opts.show_scores, config.show_scores),
     match_algorithm = opts.match_algorithm or config.match_algorithm,
   }, context)
-  opts.get_status_text = finder.get_status_text
+  -- opts.get_status_text = finder.get_status_text
 
   picker = pickers.new(opts, {
     prompt_title = "Search Files By Name",
@@ -48,15 +48,21 @@ function M.start(opts)
       actions.select_default:replace(function(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         if not selection then
-          actions.close(prompt_bufnr)
+          vim.schedule(function()
+            actions.close(prompt_bufnr)
+          end)
           return
         end
         if current ~= selection.path then
-          history:record_usage(selection.path, true)
+          vim.defer_fn(function()
+            history:record_usage(selection.path, true)
+          end, 200)
         end
-        local original_weights = db:get_weights(weights.default_weights)
-        local revised_weights = weights.revise_weights(original_weights, finder.results, selection)
-        db:save_weights(revised_weights)
+        vim.defer_fn(function()
+          local original_weights = db:get_weights(weights.default_weights)
+          local revised_weights = weights.revise_weights(original_weights, finder.results, selection)
+          db:save_weights(revised_weights)
+        end, 200)
         actions.file_edit(prompt_bufnr)
       end)
       map("i", "<C-c>", function()

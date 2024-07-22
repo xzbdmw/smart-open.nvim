@@ -62,7 +62,7 @@ local function format_filepath(path, filename, opts, maxlen)
   local hl_group = {}
 
   if opts.filename_first then
-    local spacing = " "
+    local spacing = "  "
     local result = filename .. spacing .. path
     if maxlen and len(result) > maxlen then
       -- There's overflow

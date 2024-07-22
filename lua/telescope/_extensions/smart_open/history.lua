@@ -100,7 +100,9 @@ function M:setup(db, opts)
   local group = api.nvim_create_augroup("TelescopeSmartOpen", { clear = true })
   api.nvim_create_autocmd({ "BufWinEnter", "BufWritePost" }, {
     callback = function(args)
-      M:record_usage(args.match)
+      vim.defer_fn(function()
+        M:record_usage(args.match)
+      end, 100)
     end,
     group = group,
   })
