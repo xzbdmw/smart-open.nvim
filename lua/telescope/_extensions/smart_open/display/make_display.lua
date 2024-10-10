@@ -15,14 +15,6 @@ end
 local function open_buffer_indicators(entry, buffer_indicators)
   local prefix = " "
 
-  if entry.buf and vim.api.nvim_buf_is_valid(entry.buf) then
-    if entry.scores.alt > 0 then
-      prefix = buffer_indicators.previous
-    else
-      prefix = buffer_indicators.others
-    end
-  end
-
   return { prefix }
 end
 
@@ -123,10 +115,10 @@ local function make_display(opts)
       table.insert(to_display, { score_display(entry) .. " " })
     end
 
-    table.insert(
-      to_display,
-      open_buffer_indicators(entry, opts.open_buffer_indicators or opts.config.open_buffer_indicators)
-    )
+    -- table.insert(
+    --   to_display,
+    --   open_buffer_indicators(entry, opts.open_buffer_indicators or opts.config.open_buffer_indicators)
+    -- )
 
     if has_devicons and not opts.disable_devicons then
       local icon, hl_group = devicons.get_icon(entry.virtual_name, string.match(entry.path, "%a+$"), { default = true })
@@ -145,7 +137,12 @@ local function make_display(opts)
     table.insert(to_display, format(entry, fit_width))
 
     local result = combine_display(to_display)
-
+    if not (entry.buf and vim.api.nvim_buf_is_valid(entry.buf)) and result.hl_group[2] ~= nil then
+      local icon_hl_group = result.hl_group[1][1]
+      local dir_hl_group = result.hl_group[2][1]
+      local range = { icon_hl_group[2], dir_hl_group[1] }
+      table.insert(result.hl_group, 2, { range, "SmartUnOpened" })
+    end
     return result[1], result.hl_group
   end
 
