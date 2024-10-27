@@ -108,17 +108,21 @@ local function make_display(opts)
 
   local function display(entry)
     update_results_width()
+    local arrow_filenames = {}
+    local arrow_index = {}
+    for i, arrow_file in ipairs(vim.g.arrow_filenames) do
+      arrow_file = vim.loop.cwd() .. "/" .. arrow_file
+      local statusline = require("arrow.statusline")
+      local index = statusline.text_for_statusline(_, i)
+      table.insert(arrow_filenames, arrow_file)
+      table.insert(arrow_index, index)
+    end
 
     local to_display = {}
 
     if opts.show_scores then
       table.insert(to_display, { score_display(entry) .. " " })
     end
-
-    -- table.insert(
-    --   to_display,
-    --   open_buffer_indicators(entry, opts.open_buffer_indicators or opts.config.open_buffer_indicators)
-    -- )
 
     if has_devicons and not opts.disable_devicons then
       local icon, hl_group = devicons.get_icon(entry.virtual_name, string.match(entry.path, "%a+$"), { default = true })
@@ -142,6 +146,38 @@ local function make_display(opts)
       local dir_hl_group = result.hl_group[2][1]
       local range = { icon_hl_group[2], dir_hl_group[1] }
       table.insert(result.hl_group, 2, { range, "SmartUnOpened" })
+    else
+      local dir_hl = result.hl_group[2][1]
+      dir_hl[1] = dir_hl[1] + 3
+      dir_hl[2] = dir_hl[2] + 3
+    end
+    for i = 1, #arrow_filenames do
+      local filename = arrow_filenames[i]
+      if filename == entry.path then
+        local first_space = string.find(result[1], entry.virtual_name, nil, true)
+        if first_space ~= nil then
+          local index_string = "[" .. arrow_index[i] .. "]"
+          result[1] = result[1]:sub(1, first_space + #entry.virtual_name)
+            .. index_string
+            .. result[1]:sub(first_space + #entry.virtual_name + 1)
+          if #result.hl_group >= 3 then
+            local dir_hl = result.hl_group[3][1]
+            dir_hl[1] = dir_hl[1] + #index_string
+            dir_hl[2] = dir_hl[2] + #index_string
+          end
+          local last = 3
+          for index, h in ipairs(result.hl_group) do
+            if h[2] == "Directory" then
+              last = index
+              break
+            end
+          end
+          table.insert(result.hl_group, last, {
+            { result.hl_group[last][1][1] - 1 - #index_string, result.hl_group[last][1][1] - 1 },
+            "@variable.member.lua",
+          })
+        end
+      end
     end
     return result[1], result.hl_group
   end
