@@ -65,6 +65,9 @@ function M.start(opts)
         end, 200)
         actions.file_edit(prompt_bufnr)
       end)
+      map({ "n", "i" }, ";", function(_prompt_bufnr)
+        FeedKeys("<c-c>;", "m")
+      end)
       return true
     end,
     finder = finder,
@@ -79,6 +82,31 @@ function M.start(opts)
       return #a.path < #b.path
     end,
   })
+  local arrow_filenames = {}
+  local arrow_index = {}
+  for i, arrow_file in ipairs(vim.g.arrow_filenames) do
+    arrow_file = vim.loop.cwd() .. "/" .. arrow_file
+    local statusline = require("arrow.statusline")
+    local index = statusline.text_for_statusline(_, i)
+    table.insert(arrow_filenames, arrow_file)
+    table.insert(arrow_index, index)
+  end
+  local entry_adder = picker.entry_adder
+  picker.entry_adder = function(picker_, index, entry, _, insert)
+    entry_adder(picker_, index, entry, _, insert)
+
+    for i = 1, #arrow_filenames do
+      local filename = arrow_filenames[i]
+      if filename == entry.path then
+        local prompt_bufnr = require("telescope.state").get_existing_prompt_bufnrs()[1]
+        if vim.api.nvim_buf_is_valid(prompt_bufnr) then
+          vim.keymap.set({ "n", "i" }, tostring(i), function()
+            FeedKeys("<c-c>;" .. i, "m")
+          end, { buffer = prompt_bufnr })
+        end
+      end
+    end
+  end
   picker:find()
 
   vim.api.nvim_buf_set_option(picker.prompt_bufnr, "filetype", "TelescopePrompt")

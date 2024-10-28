@@ -146,10 +146,6 @@ local function make_display(opts)
       local dir_hl_group = result.hl_group[2][1]
       local range = { icon_hl_group[2], dir_hl_group[1] }
       table.insert(result.hl_group, 2, { range, "SmartUnOpened" })
-    else
-      local dir_hl = result.hl_group[2][1]
-      dir_hl[1] = dir_hl[1] + 3
-      dir_hl[2] = dir_hl[2] + 3
     end
     for i = 1, #arrow_filenames do
       local filename = arrow_filenames[i]
@@ -162,13 +158,16 @@ local function make_display(opts)
             .. result[1]:sub(first_space + #entry.virtual_name + 1)
           if #result.hl_group >= 3 then
             local dir_hl = result.hl_group[3][1]
-            dir_hl[1] = dir_hl[1] + #index_string
-            dir_hl[2] = dir_hl[2] + #index_string
+            -- dir_hl[1] = dir_hl[1] + #index_string
+            -- dir_hl[2] = dir_hl[2] + #index_string
           end
           local last = 3
           for index, h in ipairs(result.hl_group) do
             if h[2] == "Directory" then
               last = index
+              local dir_hl = result.hl_group[index][1]
+              dir_hl[1] = dir_hl[1] + 3
+              dir_hl[2] = dir_hl[2] + 3
               break
             end
           end
