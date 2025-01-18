@@ -5,7 +5,7 @@ local function safe_close(handle)
     vim.loop.close(handle)
   end
 end
-
+local cache = {}
 local function spawn(cmd, opts, input, onexit)
   local handle
   -- open an new pipe for stdout
@@ -97,10 +97,21 @@ local function ripgrep_scan(basedir, ignore_patterns, on_insert, on_complete)
 end
 
 return function(cwd, ignore_patterns, on_insert, on_complete)
-  ripgrep_scan(cwd, ignore_patterns, on_insert, function(exit_code, err)
-    if exit_code ~= 0 then
-      print("ripgrep exited with code", exit_code, "and error:", err)
+  if not cache[cwd] then
+    cache[cwd] = {}
+    ripgrep_scan(cwd, ignore_patterns, function(path)
+      on_insert(path)
+      table.insert(cache[cwd], path)
+    end, function(exit_code, err)
+      if exit_code ~= 0 then
+        print("ripgrep exited with code", exit_code, "and error:", err)
+      end
+      on_complete()
+    end)
+  else
+    for _, path in ipairs(cache[cwd]) do
+      on_insert(path)
     end
     on_complete()
-  end)
+  end
 end
