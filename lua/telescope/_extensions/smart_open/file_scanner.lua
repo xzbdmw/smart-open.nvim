@@ -51,25 +51,22 @@ end
 
 local function ripgrep_scan(basedir, ignore_patterns, on_insert, on_complete)
   local stderr = ""
+
   local args = {
-    "--files",
-    "--glob-case-insensitive",
-    "--line-buffered",
     "--hidden",
+    "--exclude",
+    ".git",
+    "--exclude",
+    "tmp",
     "--ignore-file",
     basedir .. "/.ff-ignore",
   }
-
-  for _, value in ipairs(ignore_patterns) do
-    table.insert(args, "-g")
-    table.insert(args, "!" .. value)
-  end
 
   local done = false
   local stop
 
   local start_time
-  stop = spawn("rg", { args = args, cwd = basedir }, {
+  stop = spawn("fd", { args = args, cwd = basedir }, {
     stdout = function(_, chunk)
       if not start_time then
         start_time = vim.loop.uptime()
