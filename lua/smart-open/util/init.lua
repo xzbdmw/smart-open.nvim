@@ -30,8 +30,23 @@ util.split = function(str, delimiter)
   return result
 end
 
+local cache = {}
+
 util.fs_stat = function(path)
-  local stat = uv.fs_stat(path)
+  local cwd = uv.cwd()
+  if not cache[cwd] then
+    cache[cwd] = {}
+  end
+  local stat
+  if not cache[cwd][path] then
+    stat = uv.fs_stat(path)
+    if stat == nil then
+      require("telescope._extensions.smart_open.dbclient").db:delete("files", { where = { path = path } })
+    end
+    cache[cwd][path] = stat
+  else
+    stat = cache[cwd][path]
+  end
   local res = {}
   res.exists = stat and true or false -- TODO: this is silly
   res.isdirectory = (stat and stat.type == "directory") and true or false
