@@ -5,7 +5,7 @@ local function safe_close(handle)
     vim.loop.close(handle)
   end
 end
-local cache = {}
+local fscan_cache = require("smart-open.util").fsacn_cache
 local function spawn(cmd, opts, input, onexit)
   local handle
   -- open an new pipe for stdout
@@ -97,11 +97,11 @@ local function ripgrep_scan(basedir, ignore_patterns, on_insert, on_complete)
 end
 
 return function(cwd, ignore_patterns, on_insert, on_complete)
-  if not cache[cwd] then
-    cache[cwd] = {}
+  if not fscan_cache[cwd] then
+    fscan_cache[cwd] = {}
     ripgrep_scan(cwd, ignore_patterns, function(path)
       on_insert(path)
-      table.insert(cache[cwd], path)
+      table.insert(fscan_cache[cwd], path)
     end, function(exit_code, err)
       if exit_code ~= 0 then
         print("ripgrep exited with code", exit_code, "and error:", err)
@@ -109,7 +109,7 @@ return function(cwd, ignore_patterns, on_insert, on_complete)
       on_complete()
     end)
   else
-    for _, path in ipairs(cache[cwd]) do
+    for _, path in ipairs(fscan_cache[cwd]) do
       on_insert(path)
     end
     on_complete()

@@ -30,22 +30,29 @@ util.split = function(str, delimiter)
   return result
 end
 
-local cache = {}
+util.cache = {}
+util.fsacn_cache = {}
+
+util.reset_cache = function()
+  local cwd = vim.uv.cwd()
+  util.fsacn_cache[cwd] = nil
+  util.cache[cwd] = nil
+end
 
 util.fs_stat = function(path)
   local cwd = uv.cwd()
-  if not cache[cwd] then
-    cache[cwd] = {}
+  if not util.cache[cwd] then
+    util.cache[cwd] = {}
   end
   local stat
-  if not cache[cwd][path] then
+  if not util.cache[cwd][path] then
     stat = uv.fs_stat(path)
     if stat == nil then
       require("telescope._extensions.smart_open.dbclient").db:delete("files", { where = { path = path } })
     end
-    cache[cwd][path] = stat
+    util.cache[cwd][path] = stat
   else
-    stat = cache[cwd][path]
+    stat = util.cache[cwd][path]
   end
   local res = {}
   res.exists = stat and true or false -- TODO: this is silly
