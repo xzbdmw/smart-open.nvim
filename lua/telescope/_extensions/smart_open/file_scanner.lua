@@ -56,6 +56,8 @@ local function ripgrep_scan(basedir, ignore_patterns, on_insert, on_complete)
     "--hidden",
     "--exclude",
     ".git",
+    "-t",
+    "f",
     "--exclude",
     "tmp",
     "--ignore-file",
@@ -76,7 +78,10 @@ local function ripgrep_scan(basedir, ignore_patterns, on_insert, on_complete)
         return
       end
 
-      for line in splitlines(chunk) do
+      for _, line in ipairs(vim.split(chunk, "\n", { trimempty = true })) do
+        if line == "" then
+          goto continue
+        end
         if on_insert(basedir .. "/" .. line) == false then
           done = true
           stop()
@@ -84,6 +89,7 @@ local function ripgrep_scan(basedir, ignore_patterns, on_insert, on_complete)
             on_complete(0, "")
           end)
         end
+        ::continue::
       end
     end,
     stderr = function(s, data)

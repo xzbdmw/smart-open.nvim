@@ -163,7 +163,7 @@ local function make_display(opts)
           end
           local last = 3
           for index, h in ipairs(result.hl_group) do
-            if h[2] == "Directory" then
+            if h[2] == "SnacksPickerDir" then
               last = index
               local dir_hl = result.hl_group[index][1]
               dir_hl[1] = dir_hl[1] + 3

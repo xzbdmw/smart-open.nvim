@@ -12,8 +12,22 @@ local make_display = require("telescope._extensions.smart_open.display.make_disp
 local picker
 local M = {}
 
+local did_set = false
+local function setup_commands(db)
+  if did_set == false then
+    vim.api.nvim_create_user_command("SmartOpenValidate", function()
+      db:validate()
+    end, {})
+    vim.api.nvim_create_user_command("SmartOpenRefresh", function()
+      require("smart-open.util").reset_cache()
+    end, {})
+    did_set = true
+  end
+end
+
 function M.start(opts)
   local db = opts.db
+  setup_commands(db)
   local config = opts.config
 
   ---@diagnostic disable-next-line: param-type-mismatch
@@ -66,7 +80,7 @@ function M.start(opts)
         actions.file_edit(prompt_bufnr)
       end)
       map({ "n", "i" }, ";", function(_prompt_bufnr)
-        FeedKeys("<c-c>;", "m")
+        FeedKeys("<c-c>'", "m")
       end)
       return true
     end,
@@ -101,7 +115,7 @@ function M.start(opts)
         local prompt_bufnr = require("telescope.state").get_existing_prompt_bufnrs()[1]
         if vim.api.nvim_buf_is_valid(prompt_bufnr) then
           vim.keymap.set({ "n", "i" }, tostring(i), function()
-            FeedKeys("<c-c>;" .. i, "m")
+            FeedKeys("<c-c>'" .. i, "m")
           end, { buffer = prompt_bufnr })
         end
       end

@@ -44,9 +44,7 @@ return function(history, opts, context)
   file_scanner(opts.cwd, opts.ignore_patterns, function(fullpath)
     if not is_added[fullpath] then
       local entry_data = create_entry_data(fullpath, h, context)
-      if not vim.endswith(entry_data.path, [[/]]) then
-        match_runner.add_entry(entry_data)
-      end
+      match_runner.add_entry(entry_data)
     end
   end, function()
     match_runner.entries_complete()
