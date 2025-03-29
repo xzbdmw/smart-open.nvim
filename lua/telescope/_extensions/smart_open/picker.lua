@@ -67,6 +67,20 @@ function M.start(opts)
           end)
           return
         end
+
+        if not vim.uv.fs_stat(selection.path) then
+          db:validate()
+          require("smart-open.util").reset_cache()
+          vim.defer_fn(function()
+            db:validate()
+            require("smart-open.util").reset_cache()
+          end, 100)
+          vim.notify("File has been removed", vim.log.levels.WARN)
+          vim.schedule(function()
+            actions.close(prompt_bufnr)
+          end)
+          return
+        end
         if current ~= selection.path then
           vim.defer_fn(function()
             history:record_usage(selection.path, true)
@@ -78,9 +92,6 @@ function M.start(opts)
           db:save_weights(revised_weights)
         end, 200)
         actions.file_edit(prompt_bufnr)
-      end)
-      map({ "n", "i" }, ";", function(_prompt_bufnr)
-        FeedKeys("<c-c>'", "m")
       end)
       return true
     end,
