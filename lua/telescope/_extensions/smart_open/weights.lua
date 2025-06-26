@@ -9,6 +9,7 @@ M.default_weights = {
   path_fzy = 140,
   virtual_name_fzy = 131,
   virtual_name_fzf = 131,
+  exact_filename_bonus = 200,
   open = 3,
   alt = 4,
   proximity = 13,

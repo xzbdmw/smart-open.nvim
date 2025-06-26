@@ -27,7 +27,24 @@ return function(options)
     local vn_score = prompt_matcher.score(prompt, entry.virtual_name, entry)
     entry.scores[vn_prop] = weights[vn_prop] * vn_score
 
-    return entry.scores[vn_prop] + entry.scores[path_prop]
+    -- Apply exact filename match bonus based on percentage match
+    local exact_bonus = 0
+    -- Extract filename without extension from virtual_name
+    local filename_without_ext = entry.virtual_name:match("([^/\\]+)%.[^.]*$")
+      or entry.virtual_name:match("([^/\\]+)$")
+      or entry.virtual_name
+    local trimmed_prompt = vim.trim(prompt:lower())
+    if
+      (("'" .. filename_without_ext):lower():find(trimmed_prompt, 1, true) and #trimmed_prompt > 0)
+      or (filename_without_ext:lower():find(trimmed_prompt, 1, true) and #trimmed_prompt > 0)
+    then
+      -- Calculate percentage: prompt length / filename length
+      local match_percentage = #trimmed_prompt / #filename_without_ext
+      exact_bonus = (weights.exact_filename_bonus or 0) * match_percentage
+      entry.scores.exact_filename_bonus = exact_bonus
+    end
+
+    return entry.scores[vn_prop] + entry.scores[path_prop] + exact_bonus
   end
 
   local M = {}
